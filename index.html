@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#F3F3F0">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
 <style>
 :root{--bg:#F3F3F0;--surface:#fff;--ink:#15171B;--muted:#62666F;--line:#D5D6D9;--line2:#B4B7BD;--mark:#E5484D;--mark-ink:#fff;--sel:#15171B;
   --display:"Archivo","Arial Narrow",Arial,sans-serif;--body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:light}
@@ -107,9 +107,9 @@ button.b:disabled{opacity:.4;cursor:default}
 
   <label class="drop" id="drop" for="file">
     <b>Add PDFs or photos</b>
-    <span>or drop them here · PDF · JPG · PNG</span>
+    <span>or drop them here · PDF · JPG · PNG · HEIC</span>
   </label>
-  <input id="file" type="file" accept="application/pdf,image/jpeg,image/png,.pdf" multiple hidden>
+  <input id="file" type="file" accept="application/pdf,image/jpeg,image/png,image/heic,image/heif,.pdf,.heic,.heif" multiple hidden>
   <div class="row2"><button id="optB">Options</button><button id="formB" hidden>Fill form</button></div>
   <div id="err" role="alert"></div>
   <div id="grid" class="grid"></div>
@@ -142,6 +142,11 @@ button.b:disabled{opacity:.4;cursor:default}
   <small>Smaller and Smallest turn every page into an image. The file shrinks, text can no longer be selected, quality drops a little.</small>
   <label><input type="checkbox" id="opN"> Page numbers (1 / 5)</label>
   <label>Watermark <input type="text" id="opW" placeholder="for example DRAFT"></label>
+  <label><input type="checkbox" id="opO"> Make scans searchable (OCR)</label>
+  <label>OCR language <select id="opL"><option value="eng+por">English + Portuguese</option><option value="rus+ukr+eng">Russian + Ukrainian + English</option><option value="eng+por+rus+ukr">All four (slower)</option></select></label>
+  <small>Adds an invisible text layer to photos and scanned pages, so you can search and select the text. Runs on your device; the first page takes a few seconds to start.</small>
+  <label id="opTL" hidden>Translate to <select id="opT"><option value="">Don't translate</option></select></label>
+  <small id="opTs" hidden>Chrome or Edge on a computer only. The browser translates on your device. Pages with text become images (the old text is gone), so turn on OCR to keep the new text searchable. Arabic, Hindi, Chinese, Japanese and Korean are not offered because the built-in font cannot draw them.</small>
   <div class="sgrow"><span class="sp"></span><button class="b go" id="opOk">Done</button></div>
 </div></div>
 <div id="fm" hidden><div class="sgbox">
@@ -178,8 +183,14 @@ async function addFiles(list) {
   for (const f of list) {
     const name = f.name, low = name.toLowerCase();
     try {
-      const bytes = new Uint8Array(await f.arrayBuffer());
+      let bytes = new Uint8Array(await f.arrayBuffer());
       const id = ++seq;
+      let heic = /\.(heic|heif)$/.test(low) || /image\/hei[cf]/i.test(f.type);
+      if (heic) {
+        if (!window.heic2any) await loadScript('vendor/heic2any.min.js');
+        let r = await window.heic2any({ blob: f, toType: 'image/jpeg', quality: .95 }); if (Array.isArray(r)) r = r[0];
+        bytes = new Uint8Array(await r.arrayBuffer());
+      }
       if (f.type === 'application/pdf' || low.endsWith('.pdf')) {
         let doc, password;
         for (let tries = 0; ; tries++) {
@@ -204,12 +215,12 @@ async function addFiles(list) {
           render();
         }
         await doc.destroy();
-      } else if (f.type === 'image/jpeg' || f.type === 'image/png' || /\.(jpe?g|png)$/.test(low)) {
-        const isPng = f.type === 'image/png' || low.endsWith('.png');
+      } else if (heic || f.type === 'image/jpeg' || f.type === 'image/png' || /\.(jpe?g|png)$/.test(low)) {
+        const isPng = !heic && (f.type === 'image/png' || low.endsWith('.png'));
         files.set(id, { name, bytes, png: isPng });
         pages.push({ id: ++seq, file: id, index: 0, kind: 'img', rot: 0, thumb: URL.createObjectURL(new Blob([bytes], { type: isPng ? 'image/png' : 'image/jpeg' })), label: name, num: 1, sel: false });
         render();
-      } else err(`Skipped ${name}: only PDF, JPG and PNG.`);
+      } else err(`Skipped ${name}: only PDF, JPG, PNG and HEIC.`);
     } catch (e) {
       err(e && e.message === 'skip' ? `Skipped ${name}: no password.` : /password/i.test(String(e && e.name)) ? `${name}: wrong password.` : `Could not open ${name}.`);
     }
@@ -276,19 +287,22 @@ async function srcDoc(id) {
   return srcCache.get(id);
 }
 
-async function addTo(out, p, idx, total) {
+async function addTo(out, p0, idx, total) {
+  let p = p0, r0 = 0, needOcr = false;
+  if (opts.tr) { const tr = await translateAnns(p, idx, total); if (tr) p = { ...p, ann: [...(p.ann || []), ...tr], flatten: true }; }
   const [dpi, q] = opts.q === 1 ? [150, .75] : opts.q === 2 ? [100, .55] : [200, .92];
   let page, R;
-  if (p.flatten || p.locked || opts.q) ({ page, R } = await addRaster(out, p, dpi, q));
+  if (p.flatten || p.locked || opts.q) { ({ page, R } = await addRaster(out, p, dpi, q)); needOcr = true; }
   else if (p.kind === 'pdf') {
     const src = await srcDoc(p.file);
     const [cp] = await out.copyPages(src, [p.index]);
     const intr = ((cp.getRotation().angle % 360) + 360) % 360;
     cp.setRotation(degrees(((intr + p.rot) % 360 + 360) % 360));
-    out.addPage(cp); page = cp; R = ((intr + p.rot) % 360 + 360) % 360;
+    out.addPage(cp); page = cp; R = ((intr + p.rot) % 360 + 360) % 360; r0 = intr;
     if (p.ann && p.ann.length) await applyAnn(out, cp, p.ann, intr);
     if (p.crop) setCrop(cp, p.crop, intr);
   } else {
+    needOcr = true;
     const f = files.get(p.file);
     const img = f.png ? await out.embedPng(f.bytes) : await out.embedJpg(f.bytes);
     let w = img.width, h = img.height, q2 = p.rot % 180;
@@ -305,6 +319,7 @@ async function addTo(out, p, idx, total) {
     if (p.ann && p.ann.length) await applyAnn(out, page, p.ann, 0);
     if (p.crop) setCrop(page, p.crop, 0);
   }
+  await ocrLayer(out, page, r0, p, needOcr, idx, total);
   await overlays(out, page, R, idx, total);
 }
 async function build(list) { const out = await PDFDocument.create(); for (let i = 0; i < list.length; i++) await addTo(out, list[i], i, list.length); out.setProducer('PDF toolkit'); out.setCreator('PDF toolkit'); return out.save(); }
@@ -526,10 +541,10 @@ $('edUndo').onclick = () => { if (!ed.hist.length) return; ed.anns = ed.hist.pop
 function pt(e) { const r = $('edCv').getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * ed.g.W, y: (e.clientY - r.top) / r.height * ed.g.H }; }
 function hit(q) { for (let i = ed.anns.length - 1; i >= 0; i--) { const b = bboxOf(ed.anns[i]); if (q.x >= b.x - 3 && q.x <= b.x + b.w + 3 && q.y >= b.y - 3 && q.y <= b.y + b.h + 3) return i; } return -1; }
 
-function sampleStyle(it) {
-  const k = ed.g.base.width / ed.g.W, ctx = ed.g.base.getContext('2d', { willReadFrequently: true });
+function sampleStyle(it, g = ed.g) {
+  const k = g.base.width / g.W, ctx = g.base.getContext('2d', { willReadFrequently: true });
   const x0 = Math.max(0, Math.floor((it.x - 2) * k)), y0 = Math.max(0, Math.floor((it.y - it.h * .95) * k));
-  const w = Math.min(ed.g.base.width - x0, Math.ceil((it.w + 4) * k)), h = Math.min(ed.g.base.height - y0, Math.ceil(it.h * 1.25 * k));
+  const w = Math.min(g.base.width - x0, Math.ceil((it.w + 4) * k)), h = Math.min(g.base.height - y0, Math.ceil(it.h * 1.25 * k));
   if (w <= 0 || h <= 0) return { fill: '#ffffff', ink: '#111111' };
   const d = ctx.getImageData(x0, y0, w, h).data, br = d[0], bg = d[1], bb = d[2];
   let best = -1, ir = 17, ig = 17, ib = 17;
@@ -668,6 +683,7 @@ async function drawLine(doc, page, m, vx, vy, size, color, text, o = {}) {
   const th = (o.theta || 0) * Math.PI / 180, dx = Math.cos(th), dy = -Math.sin(th), runs = [];
   let tw = 0;
   for (const r of scriptRuns(text)) { const font = await fontFor(doc, r.sc, o.bold); const w = font.widthOfTextAtSize(r.s, size); runs.push({ ...r, font, w }); tw += w; }
+  if (o.fitW && tw > 0) { const f = Math.min(2, Math.max(.3, o.fitW / tw)); size *= f; runs.forEach(r => r.w *= f); tw *= f; }
   if (o.center) { vx -= tw / 2 * dx; vy -= tw / 2 * dy; }
   for (const r of runs) {
     const [X, Y] = m.pt(vx, vy);
@@ -715,10 +731,88 @@ async function addRaster(out, p, dpi, q) {
   return { page, R };
 }
 
-/* ---------- options (size, page numbers, watermark) ---------- */
-const opts = { q: 0, num: false, wm: '' };
-$('optB').onclick = () => { $('opQ').value = opts.q; $('opN').checked = opts.num; $('opW').value = opts.wm; $('op').hidden = false; };
-$('opOk').onclick = () => { opts.q = +$('opQ').value; opts.num = $('opN').checked; opts.wm = $('opW').value; $('op').hidden = true; $('optB').classList.toggle('on', !!(opts.q || opts.num || opts.wm.trim())); };
+
+/* ---------- OCR (Tesseract.js, runs here) ---------- */
+const status = (t) => { $('tot').textContent = t; };
+let ocrW = null, ocrKey = '';
+async function ocrWorker(langs) {
+  if (ocrW && ocrKey === langs) return ocrW;
+  if (ocrW) { await ocrW.terminate(); ocrW = null; }
+  if (!window.Tesseract) await loadScript('vendor/tesseract/tesseract.min.js');
+  ocrW = await Tesseract.createWorker(langs.split('+'), 1, { workerPath: 'vendor/tesseract/worker.min.js', corePath: 'vendor/core/', langPath: 'vendor/lang/', gzip: true });
+  ocrKey = langs; return ocrW;
+}
+function ocrWords(data) {
+  if (data.words && data.words.length) return data.words;
+  const out = [];
+  for (const b of data.blocks || []) for (const pa of b.paragraphs || []) for (const l of pa.lines || []) for (const w of l.words || []) out.push(w);
+  return out;
+}
+async function ocrLayer(out, page, r0, p, needed, idx, total) {
+  if (!opts.ocr) return;
+  if (!needed && p.kind === 'pdf') {
+    const t = await (await pdfPage(p)).getTextContent();
+    if (t.items.some(i => i.str && i.str.trim())) return;       // already has real text
+  }
+  status(`Reading page ${idx + 1} of ${total}…`);
+  const g = await geom(p, 0, false, 200), w = await ocrWorker(opts.lang);
+  const k = g.base.width / g.W; (p.ann || []).forEach(a => drawAnn(g.base.getContext('2d'), a, k));   // read what the page really shows, edits and translation included
+  const { data } = await w.recognize(g.base, {}, { blocks: true });
+  const ox = p.crop ? p.crop.x : 0, oy = p.crop ? p.crop.y : 0, m = mapper(page.getCropBox(), r0);
+  for (const wd of ocrWords(data)) {
+    const t = (wd.text || '').trim(); if (!t || wd.confidence < 30) continue;
+    const bb = wd.bbox, h = (bb.y1 - bb.y0) / k, wdt = (bb.x1 - bb.x0) / k;
+    try { await drawLine(out, page, m, bb.x0 / k - ox, bb.y1 / k - oy - h * .2, Math.max(3, h * .8), rgb(0, 0, 0), t, { opacity: 0, fitW: wdt }); } catch (e) { }
+  }
+}
+
+/* ---------- translation (the browser's own on-device Translator, Chrome / Edge on desktop) ---------- */
+const TR_LANGS = 'bg cs da de el en es fi fr hr hu id it lt nl no pl pt ro ru sk sl sv tr uk'.split(' ');
+(async () => {
+  if (!('Translator' in self)) return;
+  const dn = new Intl.DisplayNames(['en'], { type: 'language' }), sel = $('opT');
+  for (const c of TR_LANGS) {
+    try { const a = await Translator.availability({ sourceLanguage: c === 'en' ? 'es' : 'en', targetLanguage: c }); if (a === 'unavailable') continue; } catch (e) { continue; }
+    sel.add(new Option(dn.of(c), c));
+  }
+  if (sel.options.length > 1) { $('opTL').hidden = false; $('opTs').hidden = false; }
+})();
+const trCache = new Map();
+async function getTranslator(src, dst) {
+  const key = src + '>' + dst; if (trCache.has(key)) return trCache.get(key);
+  const o = { sourceLanguage: src, targetLanguage: dst };
+  let t = null;
+  try { if ((await Translator.availability(o)) !== 'unavailable') t = await Translator.create(o); } catch (e) { }
+  trCache.set(key, t); return t;
+}
+async function detectLang(text) {
+  try { if ('LanguageDetector' in self) { const d = await LanguageDetector.create(); const r = await d.detect(text); if (r && r[0] && r[0].confidence > .5) return r[0].detectedLanguage; } } catch (e) { }
+  return null;
+}
+async function translateAnns(p, idx, total) {
+  if (p.kind !== 'pdf') return null;
+  status(`Translating page ${idx + 1} of ${total}…`);
+  const g = await geom(p, 900, true); if (!g.items.length) return null;
+  const sample = g.items.map(i => i.str).join(' ').slice(0, 600), src = await detectLang(sample);
+  if (!src || src === opts.tr) return null;
+  const tl = await getTranslator(src.split('-')[0], opts.tr); if (!tl) return null;
+  const anns = [];
+  for (const it of g.items) {
+    if (!/\p{L}/u.test(it.str)) continue;
+    let str; try { str = (await tl.translate(it.str)).trim(); } catch (e) { continue; }
+    if (!str) continue;
+    const st = sampleStyle(it, g); let size = Math.round(it.h * 10) / 10;
+    mctx.font = fontCss(size, false); const w0 = mctx.measureText(str).width;
+    if (w0 > it.w) size = Math.max(4, Math.round(size * it.w / w0 * 10) / 10);
+    anns.push({ t: 'text', x: it.x, y: it.y, size, color: st.ink, str, cover: { x: it.x - 1.5, y: it.y - it.h * .92, w: it.w + 3, h: it.h * 1.2, fill: st.fill } });
+  }
+  return anns;
+}
+
+/* ---------- options (size, page numbers, watermark, OCR, translate) ---------- */
+const opts = { q: 0, num: false, wm: '', ocr: false, lang: 'eng+por', tr: '' };
+$('optB').onclick = () => { $('opQ').value = opts.q; $('opN').checked = opts.num; $('opW').value = opts.wm; $('opO').checked = opts.ocr; $('opL').value = opts.lang; $('opT').value = opts.tr; $('op').hidden = false; };
+$('opOk').onclick = () => { opts.q = +$('opQ').value; opts.num = $('opN').checked; opts.wm = $('opW').value; opts.ocr = $('opO').checked; opts.lang = $('opL').value; opts.tr = $('opT').value; $('op').hidden = true; $('optB').classList.toggle('on', !!(opts.q || opts.num || opts.wm.trim() || opts.ocr || opts.tr)); };
 
 /* ---------- forms ---------- */
 const FIELD_CLASSES = () => ({ text: PDFLib.PDFTextField, check: PDFLib.PDFCheckBox, drop: PDFLib.PDFDropdown, list: PDFLib.PDFOptionList, radio: PDFLib.PDFRadioGroup });
