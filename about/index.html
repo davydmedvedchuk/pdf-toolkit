@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#131417">
 <title>PDF toolkit: merge, split, reorder, rotate. Nothing leaves your device.</title>
-<meta name="description" content="Merge, split, reorder and rotate PDF pages in your browser. Photos become pages too. Free, no upload, no account.">
+<meta name="description" content="Merge, split, reorder, rotate and edit PDF pages in your browser. Add text, a stamp or a signature. Free, no upload, no account.">
 <meta property="og:title" content="PDF toolkit">
 <meta property="og:description" content="Merge, split, reorder, rotate. Nothing leaves your device.">
 <meta property="og:image" content="https://davydmedvedchuk.github.io/pdf-toolkit/about/img/social.jpg">
@@ -99,6 +99,11 @@ pre i{font-style:normal;color:var(--mark)}
 footer{padding:36px 0 50px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 footer a{text-decoration:underline}
 
+.ed2{display:grid;grid-template-columns:1.25fr .75fr;gap:40px;align-items:center}
+.ed2 .list{display:grid;gap:14px}
+.ed2 .shot{width:100%;max-width:330px;margin:0 auto;border:2px solid var(--ink);border-radius:26px;box-shadow:0 30px 60px rgba(20,23,27,.22)}
+.note{font-size:14px;color:var(--muted);margin:18px 0 0;line-height:1.5}
+@media (max-width:900px){.ed2{grid-template-columns:1fr;gap:26px}}
 @media (max-width:900px){
   .c{padding:0 18px}
   .links,nav .btn{display:none}
@@ -122,14 +127,14 @@ footer a{text-decoration:underline}
 <header class="hero"><div class="c">
   <nav>
     <a class="brand" href="#top"><img src="../logo.svg" alt="">PDF toolkit</a>
-    <div class="links"><a href="#how">How it works</a><a href="#pages">Pages</a><a href="#faq">FAQ</a></div>
+    <div class="links"><a href="#how">How it works</a><a href="#pages">Pages</a><a href="#edit">Edit</a><a href="#faq">FAQ</a></div>
     <a class="btn go sm" href="../">Open the app</a>
   </nav>
   <div class="hero-grid" id="top">
     <div>
-      <span class="eyebrow">Merge · split · rotate</span>
+      <span class="eyebrow">Merge · split · edit</span>
       <h1>Your PDFs. Your pages. <span>Your device.</span></h1>
-      <p class="lead">Drop in PDFs and photos, move the pages around, save one PDF. Everything happens in your browser, so nothing is uploaded anywhere.</p>
+      <p class="lead">Drop in PDFs and photos, move the pages, fix a line of text, add a stamp or a signature, save one PDF. Everything happens in your browser, so nothing is uploaded anywhere.</p>
       <div class="cta"><a class="btn go" href="../">Open PDF toolkit</a><a class="btn ghost" href="#how">How it works</a></div>
       <div class="ticks"><span>Free</span><span>No upload</span><span>No account</span><span>Photos become pages</span></div>
       <div class="qrline"><div class="q"><img src="img/qr.svg" alt=""></div><div><b>Open it on your phone</b><small>Point your camera at the code</small></div></div>
@@ -152,7 +157,7 @@ footer a{text-decoration:underline}
   <p class="sub">No account, no settings to learn. Pages are cards you can move, turn and tick.</p>
   <div class="steps">
     <div class="step"><div class="n">1</div><div><h3>Add files</h3><p>Pick PDFs and photos, or drop a whole batch on the page. Every page becomes a card.</p></div></div>
-    <div class="step"><div class="n">2</div><div><h3>Arrange</h3><p>Drag pages or use the arrows. Rotate, delete, or tap a page to select it.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h3>Arrange and edit</h3><p>Drag pages or use the arrows. Rotate, delete, or tap ✎ to edit a page.</p></div></div>
     <div class="step"><div class="n">3</div><div><h3>Save</h3><p>One PDF with everything, only the selected pages, or each page as a file in a ZIP.</p></div></div>
   </div>
 </div></section>
@@ -167,13 +172,29 @@ footer a{text-decoration:underline}
   </div>
 </div></section>
 
+<section id="edit" style="padding-top:20px"><div class="c">
+  <div class="kicker">Edit</div>
+  <h2>Text, stamp, signature</h2>
+  <p class="sub">Tap ✎ on any page. Fill in a form, sign a quote, mark an invoice as paid.</p>
+  <div class="ed2">
+    <div class="list">
+      <div class="fb"><h3>Add text</h3><p style="margin:0">Type anywhere on the page. Latin and Cyrillic both work.</p></div>
+      <div class="fb"><h3>Edit text</h3><p style="margin:0">Tap a line of the page and change it. New text is set in Inter, so it can look a little different from the original.</p></div>
+      <div class="fb"><h3>Stamp</h3><p style="margin:0">APPROVED, PAID, DRAFT, or your own words, with today's date if you like.</p></div>
+      <div class="fb"><h3>Signature</h3><p style="margin:0">Draw it with a finger or a mouse. The page remembers the last one in your browser.</p></div>
+      <div class="fb"><h3>White out</h3><p style="margin:0">Cover an area. It hides the spot, but the text underneath stays in the file.</p></div>
+    </div>
+    <img class="shot" src="img/editor.jpg" alt="The page editor with a signature, a date and an APPROVED stamp on a quotation" loading="lazy">
+  </div>
+</div></section>
+
 <section class="shots"><div class="c">
   <div class="kicker">Inside</div>
   <h2>Small things that matter</h2>
   <p class="sub">The parts behind the buttons.</p>
   <div class="pg">
     <div class="pc"><div class="tag">Private</div><h3>Stays on your device</h3><p>The page reads and writes the files itself. There is no server, so nothing is uploaded.</p></div>
-    <div class="pc"><div class="tag">Open libraries</div><h3>pdf.js and pdf-lib</h3><p>Thumbnails come from pdf.js, editing and saving from pdf-lib. Both are bundled in the repository, with their licences.</p></div>
+    <div class="pc"><div class="tag">Open libraries</div><h3>pdf.js and pdf-lib</h3><p>Thumbnails come from pdf.js, saving from pdf-lib, added text is set in Inter. All of it is bundled in the repository, with the licences.</p></div>
     <div class="pc"><div class="tag">Python · command line</div><h3>Same in a terminal</h3><p>A small CLI does merge, extract, split, rotate, images and info.</p><pre><i>$</i> python pdftool.py merge a.pdf b.pdf -o all.pdf</pre></div>
   </div>
 </div></section>
@@ -185,7 +206,8 @@ footer a{text-decoration:underline}
     <div class="qa"><b>Are my files uploaded?</b><p>No. The page does all the work on your device. There is no server that receives them.</p></div>
     <div class="qa"><b>What does it cost?</b><p>Nothing. No account, no ads. The code is open under the MIT licence.</p></div>
     <div class="qa"><b>Does it change the quality of my pages?</b><p>PDF pages are copied as they are. Photos are embedded as images, so very large photos make a large file. Shrink them first if size matters.</p></div>
-    <div class="qa"><b>Can it compress or sign a PDF?</b><p>Not yet. Today it merges, splits, reorders, rotates and deletes pages.</p></div>
+    <div class="qa"><b>Does editing remove the old text?</b><p>No. Changed text and white-out boxes are drawn on top. The original stays in the file and can still be copied, so do not use this to hide private data.</p></div>
+    <div class="qa"><b>Can it compress a PDF?</b><p>Not yet. Photos are added as they are, so shrink big ones first, for example with Photo shrinker.</p></div>
   </div>
 </div></section>
 
