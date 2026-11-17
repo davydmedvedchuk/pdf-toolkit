@@ -1,5 +1,7 @@
 # PDF toolkit
 
+> **Test version.** This app is live, but I have not checked it myself yet. If you want to use it, keep that in mind.
+
 Website: https://davydmedvedchuk.github.io/pdf-toolkit/about/
 
 Merge, split, reorder, rotate, delete and edit PDF pages. Add text, a stamp or a signature, fill forms, compress. Turn photos (HEIC from an iPhone too) into a PDF. Make scans searchable. It runs in your browser, so your documents never leave your device.
