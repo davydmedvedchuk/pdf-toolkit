@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#131417">
+<title>PDF toolkit: merge, split, reorder, rotate. Nothing leaves your device.</title>
+<meta name="description" content="Merge, split, reorder and rotate PDF pages in your browser. Photos become pages too. Free, no upload, no account.">
+<meta property="og:title" content="PDF toolkit">
+<meta property="og:description" content="Merge, split, reorder, rotate. Nothing leaves your device.">
+<meta property="og:image" content="https://davydmedvedchuk.github.io/pdf-toolkit/about/img/social.jpg">
+<link rel="icon" href="../logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--deep:#131417;--deep2:#1b1d21;--mark:#E5484D;--bg:#F3F3F0;--card:#fff;--ink:#15171B;--muted:#62666F;--line:#D5D6D9;--gold:#B42328;--disp:"Archivo","Arial Narrow",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);-webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.c{max-width:1180px;margin:0 auto;padding:0 40px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 24px;border-radius:10px;font-weight:700;font-size:16px;white-space:nowrap}
+.btn.go{background:var(--mark);color:#fff}
+.btn.ghost{border:1.5px solid rgba(255,255,255,.45);color:#fff}
+.btn.dark{background:var(--deep);color:#fff}
+.btn.sm{height:40px;padding:0 16px;font-size:14px}
+.kicker{font:500 14px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+h1,h2,h3{margin:0;font-family:var(--disp);font-stretch:75%;text-transform:uppercase}
+h2{font-weight:800;font-size:56px;line-height:1;margin-bottom:16px}
+.sub{font-size:18px;color:var(--muted);margin:0 0 44px;max-width:640px;line-height:1.5}
+section{padding:100px 0}
+
+.hero{position:relative;color:#fff;background:var(--deep);background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:36px 36px}
+nav{display:flex;align-items:center;gap:26px;padding:20px 0}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:19px}
+.brand img{width:44px;height:33px}
+.links{display:flex;gap:24px;margin-left:auto;font-size:15px;color:#d5d6d9}
+.links a:hover{color:#fff}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:end;padding:44px 0 0}
+.eyebrow{display:inline-block;font:500 14px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mark);background:rgba(229,72,77,.14);padding:7px 12px;border-radius:999px;margin-bottom:20px}
+h1{font-size:100px;line-height:.92;font-weight:800;margin-bottom:22px}
+h1 span{color:var(--mark)}
+.lead{font-size:19px;line-height:1.5;color:#d5d6d9;margin:0 0 30px;max-width:520px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+.ticks{display:flex;gap:10px 22px;flex-wrap:wrap;font-size:15px;color:#d5d6d9;margin-bottom:34px}
+.ticks span::before{content:"✓";color:var(--mark);font-weight:800;margin-right:7px}
+.qrline{display:flex;align-items:center;gap:14px;padding-bottom:64px}
+.qrline .q{background:#fff;border-radius:12px;padding:8px}
+.qrline img{width:72px;height:72px}
+.qrline b{display:block;font-size:15px}
+.qrline small{color:#9ea2aa;font-size:13px}
+
+.phone{width:300px;height:651px;margin:0 auto -60px;background:#07080a;border:2px solid #4a525c;border-radius:54px;padding:8px;box-shadow:0 40px 80px rgba(0,0,0,.5),inset 0 0 0 1px #1d2228;position:relative;z-index:2}
+.screen{width:100%;height:100%;border-radius:45px;overflow:hidden;background:#F3F3F0;position:relative}
+.screen img.app{position:absolute;left:0;top:34px;width:100%}
+.isl{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:86px;height:25px;border-radius:13px;background:#000;z-index:4}
+.isl:after{content:"";position:absolute;right:8px;top:8px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#1b2a44,#05070b)}
+.sb{position:absolute;left:0;right:0;top:0;height:34px;z-index:3;color:#15171B;font:600 13px "Archivo",sans-serif}
+.sb b{position:absolute;left:30px;top:10px}
+.sb span{position:absolute;right:24px;top:11px;display:flex;gap:5px;align-items:center}
+.pb{position:absolute;width:4px;background:#2c323a;border-radius:2px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.step{display:flex;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+.step .n{flex:0 0 44px;height:44px;border-radius:10px;background:var(--mark);color:#fff;font:800 22px var(--disp);display:flex;align-items:center;justify-content:center}
+.step h3{margin:6px 0 6px;font-size:26px;font-weight:800}
+.step p{margin:0;color:var(--muted);line-height:1.5}
+
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.fb{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+.fb h3{font-size:22px;font-weight:800;margin-bottom:14px;letter-spacing:.04em}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips span{font:500 14px var(--mono);border:1.5px solid var(--ink);border-radius:8px;padding:6px 11px}
+.chips.out span{background:var(--mark);color:#fff;border-color:var(--mark)}
+.fb p{color:var(--muted);margin:14px 0 0;font-size:15px;line-height:1.5}
+
+.shots{background:var(--deep);color:#fff}
+.shots .kicker{color:var(--mark)}
+.shots .sub{color:#b4b7bd}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.pc{background:var(--deep2);border:1px solid #2c2f35;border-radius:16px;padding:26px}
+.pc .tag{font:500 13px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mark);margin-bottom:12px}
+.pc h3{font-size:28px;font-weight:800;margin-bottom:8px}
+.pc p{margin:0;color:#b4b7bd;line-height:1.5;font-size:15px}
+pre{margin:16px 0 0;background:#0c0d0f;border:1px solid #2c2f35;border-radius:10px;padding:14px;font:400 13px/1.6 var(--mono);color:#e7e8ea;overflow:auto;white-space:pre}
+pre i{font-style:normal;color:var(--mark)}
+
+.faq{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+.qa{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.qa b{display:block;font-size:17px;margin-bottom:8px}
+.qa p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+
+.final{border-radius:20px;color:#fff;background:var(--deep);background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:36px 36px}
+.final .in{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;padding:64px 56px}
+.final p{color:#c9cbd0;font-size:18px;line-height:1.5;margin:0 0 26px;max-width:520px}
+.qb{background:#fff;border-radius:16px;padding:14px}
+.qb img{width:150px;height:150px}
+footer{padding:36px 0 50px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{text-decoration:underline}
+
+@media (max-width:900px){
+  .c{padding:0 18px}
+  .links,nav .btn{display:none}
+  .hero-grid{grid-template-columns:1fr;padding-top:14px;gap:10px}
+  h1{font-size:68px}
+  .lead{font-size:17px}
+  .cta .btn{flex:1;padding:0 12px}
+  .qrline{display:none}
+  .phone{transform:scale(.86);transform-origin:top center;margin-bottom:-110px}
+  section{padding:64px 0}
+  h2{font-size:40px}
+  .sub{font-size:16px;margin-bottom:28px}
+  .steps,.pg,.faq,.fm{grid-template-columns:1fr;gap:14px}
+  .final .in{grid-template-columns:1fr;padding:38px 24px}
+  .qb{display:none}
+  .eyebrow{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header class="hero"><div class="c">
+  <nav>
+    <a class="brand" href="#top"><img src="../logo.svg" alt="">PDF toolkit</a>
+    <div class="links"><a href="#how">How it works</a><a href="#pages">Pages</a><a href="#faq">FAQ</a></div>
+    <a class="btn go sm" href="../">Open the app</a>
+  </nav>
+  <div class="hero-grid" id="top">
+    <div>
+      <span class="eyebrow">Merge · split · rotate</span>
+      <h1>Your PDFs. Your pages. <span>Your device.</span></h1>
+      <p class="lead">Drop in PDFs and photos, move the pages around, save one PDF. Everything happens in your browser, so nothing is uploaded anywhere.</p>
+      <div class="cta"><a class="btn go" href="../">Open PDF toolkit</a><a class="btn ghost" href="#how">How it works</a></div>
+      <div class="ticks"><span>Free</span><span>No upload</span><span>No account</span><span>Photos become pages</span></div>
+      <div class="qrline"><div class="q"><img src="img/qr.svg" alt=""></div><div><b>Open it on your phone</b><small>Point your camera at the code</small></div></div>
+    </div>
+    <div>
+      <div class="phone" aria-hidden="true">
+        <i class="pb" style="left:-5px;top:93px;height:25px"></i><i class="pb" style="left:-5px;top:143px;height:47px"></i><i class="pb" style="left:-5px;top:200px;height:47px"></i><i class="pb" style="right:-5px;top:164px;height:72px"></i>
+        <div class="screen"><div class="isl"></div>
+          <div class="sb"><b>9:41</b><span><svg width="16" height="11" viewBox="0 0 30 20" fill="#15171B"><rect x="0" y="13" width="5" height="7" rx="1.5"/><rect x="8" y="9" width="5" height="11" rx="1.5"/><rect x="16" y="5" width="5" height="15" rx="1.5"/><rect x="24" y="0" width="5" height="20" rx="1.5"/></svg><svg width="15" height="11" viewBox="0 0 28 20" fill="none" stroke="#15171B" stroke-width="3" stroke-linecap="round"><path d="M2 7a17 17 0 0 1 24 0"/><path d="M7 12a10 10 0 0 1 14 0"/><circle cx="14" cy="17" r="1.5" fill="#15171B" stroke="none"/></svg><svg width="23" height="11" viewBox="0 0 42 20"><rect x="1" y="1" width="35" height="18" rx="5.5" fill="none" stroke="#15171B" stroke-opacity=".5" stroke-width="2"/><rect x="4" y="4" width="29" height="12" rx="3" fill="#15171B"/><rect x="38" y="7" width="3" height="6" rx="1.5" fill="#15171B" fill-opacity=".5"/></svg></span></div>
+          <img class="app" src="img/app.jpg" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<section id="how" style="padding-top:130px"><div class="c">
+  <div class="kicker">How it works</div>
+  <h2>Three steps</h2>
+  <p class="sub">No account, no settings to learn. Pages are cards you can move, turn and tick.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div><h3>Add files</h3><p>Pick PDFs and photos, or drop a whole batch on the page. Every page becomes a card.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h3>Arrange</h3><p>Drag pages or use the arrows. Rotate, delete, or tap a page to select it.</p></div></div>
+    <div class="step"><div class="n">3</div><div><h3>Save</h3><p>One PDF with everything, only the selected pages, or each page as a file in a ZIP.</p></div></div>
+  </div>
+</div></section>
+
+<section id="pages" style="padding-top:20px"><div class="c">
+  <div class="kicker">What goes in, what comes out</div>
+  <h2>PDFs and photos together</h2>
+  <p class="sub">A contract, a scanned page and three site photos can end up in one file.</p>
+  <div class="fm">
+    <div class="fb"><h3>In</h3><div class="chips"><span>PDF</span><span>JPG</span><span>PNG</span></div><p>Each PDF page and each photo is one card. Photos are placed on their own page.</p></div>
+    <div class="fb"><h3>Out</h3><div class="chips out"><span>PDF</span><span>Selected pages</span><span>ZIP</span></div><p>Save everything as one PDF, only the ticked pages, or split into single-page files.</p></div>
+  </div>
+</div></section>
+
+<section class="shots"><div class="c">
+  <div class="kicker">Inside</div>
+  <h2>Small things that matter</h2>
+  <p class="sub">The parts behind the buttons.</p>
+  <div class="pg">
+    <div class="pc"><div class="tag">Private</div><h3>Stays on your device</h3><p>The page reads and writes the files itself. There is no server, so nothing is uploaded.</p></div>
+    <div class="pc"><div class="tag">Open libraries</div><h3>pdf.js and pdf-lib</h3><p>Thumbnails come from pdf.js, editing and saving from pdf-lib. Both are bundled in the repository, with their licences.</p></div>
+    <div class="pc"><div class="tag">Python · command line</div><h3>Same in a terminal</h3><p>A small CLI does merge, extract, split, rotate, images and info.</p><pre><i>$</i> python pdftool.py merge a.pdf b.pdf -o all.pdf</pre></div>
+  </div>
+</div></section>
+
+<section id="faq"><div class="c">
+  <div class="kicker">FAQ</div>
+  <h2 style="margin-bottom:30px">Questions</h2>
+  <div class="faq">
+    <div class="qa"><b>Are my files uploaded?</b><p>No. The page does all the work on your device. There is no server that receives them.</p></div>
+    <div class="qa"><b>What does it cost?</b><p>Nothing. No account, no ads. The code is open under the MIT licence.</p></div>
+    <div class="qa"><b>Does it change the quality of my pages?</b><p>PDF pages are copied as they are. Photos are embedded as images, so very large photos make a large file. Shrink them first if size matters.</p></div>
+    <div class="qa"><b>Can it compress or sign a PDF?</b><p>Not yet. Today it merges, splits, reorders, rotates and deletes pages.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="c">
+  <div class="final"><div class="in">
+    <div><h2>Sort the next stack.</h2><p>It takes a minute, and nothing leaves your device.</p><a class="btn go" href="../">Open PDF toolkit</a></div>
+    <div class="qb"><img src="img/qr.svg" alt=""></div>
+  </div></div>
+  <footer><span>© Davyd Medvedchuk</span><span>MIT · <a href="https://github.com/davydmedvedchuk/pdf-toolkit">GitHub</a></span></footer>
+</div></section>
+</body>
+</html>
