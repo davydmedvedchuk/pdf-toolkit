@@ -58,9 +58,9 @@ button.b:disabled{opacity:.4;cursor:default}
 @font-face{font-family:"Inter";font-weight:700;font-display:swap;src:url(vendor/fonts/inter-cyrillic-700-normal.woff) format("woff");unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 .tools button{font-size:14px}
 .badge{color:var(--mark);font-weight:600}
-#ed,#sg{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
-#ed[hidden],#sg[hidden]{display:none}
-#sg{z-index:30;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px}
+#ed,#sg,#op,#fm{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
+#ed[hidden],#sg[hidden],#op[hidden],#fm[hidden]{display:none}
+#sg,#op,#fm{z-index:30;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px}
 .edtop{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:2px solid var(--ink)}
 .edtop b{font:700 16px var(--display);font-stretch:85%;flex:1}
 .edtop .b{padding:8px 14px;font-size:14px}
@@ -82,13 +82,26 @@ button.b:disabled{opacity:.4;cursor:default}
 #sgCv{width:100%;aspect-ratio:3/1;background:#fff;border:1.5px dashed var(--line2);touch-action:none;display:block}
 .sgrow{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
 .sgrow .sp{flex:1}
+.edpanel button.on,.row2 button.on{background:var(--ink);color:var(--bg)}
+.edpanel input[type=color]{padding:0;border:0;background:none;width:34px;height:34px}
+.edopts{padding:4px 14px;font:400 12px var(--mono);color:var(--muted);display:flex;gap:8px;align-items:center}
+.edtop .b:disabled{opacity:.35}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.row2 button{font:600 14px var(--body);padding:9px 14px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.sgbox label{display:flex;gap:10px;align-items:center;margin:10px 0;font:400 14px var(--body)}
+.sgbox select,.sgbox input[type=text]{font:400 14px var(--body);padding:8px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);flex:1;min-width:0}
+.sgbox small{display:block;font:400 12px var(--mono);color:var(--muted);margin:6px 0 0}
+#fmBody{max-height:55vh;overflow:auto}
+#fmBody h4{margin:14px 0 4px;font:700 14px var(--mono)}
+.frow{justify-content:space-between}.frow span{flex:1;font:400 13px var(--mono);overflow:hidden;text-overflow:ellipsis}
+.frow input[type=text],.frow select{flex:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <img src="logo.svg" alt="">
-    <div><h1>PDF toolkit</h1><p>Merge, split, reorder, rotate, edit.<br>Nothing leaves your device.</p></div>
+    <div><h1>PDF toolkit</h1><p>Merge, split, reorder, edit, sign.<br>Nothing leaves your device.</p></div>
     <a class="back" href="../">← all</a>
   </header>
 
@@ -97,6 +110,7 @@ button.b:disabled{opacity:.4;cursor:default}
     <span>or drop them here · PDF · JPG · PNG</span>
   </label>
   <input id="file" type="file" accept="application/pdf,image/jpeg,image/png,.pdf" multiple hidden>
+  <div class="row2"><button id="optB">Options</button><button id="formB" hidden>Fill form</button></div>
   <div id="err" role="alert"></div>
   <div id="grid" class="grid"></div>
   <div id="empty" class="empty">Add files and their pages appear here. Drag to reorder.</div>
@@ -113,14 +127,29 @@ button.b:disabled{opacity:.4;cursor:default}
 
 
 <div id="ed" hidden>
-  <div class="edtop"><b id="edTitle">Edit page</b><button class="b" id="edCancel">Cancel</button><button class="b go" id="edDone">Done</button></div>
+  <div class="edtop"><b id="edTitle">Edit page</b><button class="b" id="edUndo" disabled>Undo</button><button class="b" id="edCancel">Cancel</button><button class="b go" id="edDone">Done</button></div>
   <div class="edtools" id="edTools">
-    <button data-tool="move" class="on">Move</button><button data-tool="text">Add text</button><button data-tool="edit">Edit text</button><button data-tool="stamp">Stamp</button><button data-tool="sign">Sign</button><button data-tool="cover">White out</button>
+    <button data-tool="move" class="on">Move</button><button data-tool="text">Add text</button><button data-tool="edit">Edit text</button><button data-tool="stamp">Stamp</button><button data-tool="sign">Sign</button><button data-tool="cover">White out</button><button data-tool="crop">Crop</button>
   </div>
   <div class="edhint" id="edHint"></div>
+  <div class="edopts"><label id="edFlatL"><input type="checkbox" id="edFlat"> Save this page as an image (removes hidden text, text can no longer be selected)</label></div>
   <div class="edstage" id="edStage"><canvas id="edCv"></canvas></div>
   <div class="edpanel" id="edPanel" hidden></div>
 </div>
+<div id="op" hidden><div class="sgbox">
+  <h3>Options</h3>
+  <label>File size <select id="opQ"><option value="0">Original quality</option><option value="1">Smaller (150 dpi)</option><option value="2">Smallest (100 dpi)</option></select></label>
+  <small>Smaller and Smallest turn every page into an image. The file shrinks, text can no longer be selected, quality drops a little.</small>
+  <label><input type="checkbox" id="opN"> Page numbers (1 / 5)</label>
+  <label>Watermark <input type="text" id="opW" placeholder="for example DRAFT"></label>
+  <div class="sgrow"><span class="sp"></span><button class="b go" id="opOk">Done</button></div>
+</div></div>
+<div id="fm" hidden><div class="sgbox">
+  <h3>Fill in the form</h3>
+  <div id="fmBody"></div>
+  <small>Filled fields are written into the page and the form is flattened.</small>
+  <div class="sgrow"><span class="sp"></span><button class="b" id="fmNo">Cancel</button><button class="b go" id="fmOk">Apply</button></div>
+</div></div>
 <div id="sg" hidden><div class="sgbox">
   <h3>Draw your signature</h3>
   <canvas id="sgCv" width="900" height="300"></canvas>
@@ -152,16 +181,26 @@ async function addFiles(list) {
       const bytes = new Uint8Array(await f.arrayBuffer());
       const id = ++seq;
       if (f.type === 'application/pdf' || low.endsWith('.pdf')) {
-        const task = pdfjs.getDocument({ data: bytes.slice() });
-        const doc = await task.promise;
-        files.set(id, { name, bytes });
+        let doc, password;
+        for (let tries = 0; ; tries++) {
+          try { doc = await pdfjs.getDocument({ data: bytes.slice(), password }).promise; break; }
+          catch (e) {
+            if (e && e.name === 'PasswordException' && tries < 3) { const pw = prompt(`${name} is protected. Password:`); if (pw === null) throw new Error('skip'); password = pw; continue; }
+            throw e;
+          }
+        }
+        let locked = !!password, fields = [];
+        if (!locked) { try { fields = listFields(await PDFDocument.load(bytes)); } catch (e) { locked = true; } }
+        if (locked) err(`${name} is protected, so its pages are saved as images and the text is lost.`);
+        files.set(id, { name, bytes, password, locked, fields });
+        if (fields.length) $('formB').hidden = false;
         for (let i = 0; i < doc.numPages; i++) {
           const pg = await doc.getPage(i + 1);
           const v0 = pg.getViewport({ scale: 1 });
           const vp = pg.getViewport({ scale: 220 / v0.width });
           const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
           await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
-          pages.push({ id: ++seq, file: id, index: i, kind: 'pdf', rot: 0, thumb: c.toDataURL('image/jpeg', .7), label: name, num: i + 1, sel: false });
+          pages.push({ id: ++seq, file: id, index: i, kind: 'pdf', locked, rot: 0, thumb: c.toDataURL('image/jpeg', .7), label: name, num: i + 1, sel: false });
           render();
         }
         await doc.destroy();
@@ -172,8 +211,7 @@ async function addFiles(list) {
         render();
       } else err(`Skipped ${name}: only PDF, JPG and PNG.`);
     } catch (e) {
-      const enc = /password|encrypt/i.test(String(e && (e.name + e.message)));
-      err(enc ? `${name} is password-protected. Remove the password first.` : `Could not open ${name}.`);
+      err(e && e.message === 'skip' ? `Skipped ${name}: no password.` : /password/i.test(String(e && e.name)) ? `${name}: wrong password.` : `Could not open ${name}.`);
     }
   }
 }
@@ -185,7 +223,7 @@ function render() {
     const c = document.createElement('div'); c.className = 'card' + (p.sel ? ' sel' : ''); c.dataset.i = i;
     c.innerHTML = `<div class="num">${i + 1}</div><div class="chk" title="Select">${p.sel ? '✓' : ''}</div>
       <div class="th" draggable="true"><img src="${p.thumb}" alt="" style="transform:rotate(${p.baked ? 0 : p.rot}deg)${!p.baked && p.rot % 180 ? ' scale(.74)' : ''}"></div>
-      <div class="meta"><span class="nm">${esc(p.label)}</span><span>${p.ann && p.ann.length ? '<span class="badge">✎' + p.ann.length + '</span> ' : ''}${p.kind === 'pdf' ? 'p.' + p.num : 'img'}</span></div>
+      <div class="meta"><span class="nm">${esc(p.label)}</span><span>${badge(p)}${p.kind === 'pdf' ? 'p.' + p.num : 'img'}</span></div>
       <div class="tools"><button data-a="l" title="Move left">◀</button><button data-a="r" title="Rotate">↻</button><button data-a="e" title="Edit: text, stamp, signature">✎</button><button data-a="m" title="Move right">▶</button><button data-a="x" class="x" title="Delete">✕</button></div>`;
     g.appendChild(c);
   });
@@ -194,6 +232,7 @@ function render() {
   $('tot').textContent = n ? `${n} page${n > 1 ? 's' : ''}${s ? ` · ${s} selected` : ''}` : 'No pages yet';
   $('save').disabled = !n || busy; $('zip').disabled = !n || busy; $('clear').disabled = !n || busy; $('selBtn').disabled = !s || busy;
 }
+const badge = (p) => { const t = []; if (p.ann && p.ann.length) t.push('✎' + p.ann.length); if (p.crop) t.push('crop'); if (p.flatten) t.push('img'); if (p.locked) t.push('lock'); return t.length ? '<span class="badge">' + t.join(' ') + '</span> ' : ''; };
 const esc = (s) => s.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
 
 $('grid').addEventListener('click', (e) => {
@@ -228,35 +267,47 @@ $('file').addEventListener('change', async e => { const l = [...e.target.files];
 /* ---------- building PDFs ---------- */
 const A4 = [595.28, 841.89], M = 24;
 const srcCache = new Map();
-async function srcDoc(id) { if (!srcCache.has(id)) srcCache.set(id, await PDFDocument.load(files.get(id).bytes, { ignoreEncryption: false })); return srcCache.get(id); }
+async function srcDoc(id) {
+  if (!srcCache.has(id)) {
+    const f = files.get(id), d = await PDFDocument.load(f.bytes, { ignoreEncryption: false });
+    if (f.formVals && Object.keys(f.formVals).length) await applyForm(d, f.formVals);
+    srcCache.set(id, d);
+  }
+  return srcCache.get(id);
+}
 
-async function addTo(out, p) {
-  if (p.kind === 'pdf') {
+async function addTo(out, p, idx, total) {
+  const [dpi, q] = opts.q === 1 ? [150, .75] : opts.q === 2 ? [100, .55] : [200, .92];
+  let page, R;
+  if (p.flatten || p.locked || opts.q) ({ page, R } = await addRaster(out, p, dpi, q));
+  else if (p.kind === 'pdf') {
     const src = await srcDoc(p.file);
     const [cp] = await out.copyPages(src, [p.index]);
     const intr = ((cp.getRotation().angle % 360) + 360) % 360;
     cp.setRotation(degrees(((intr + p.rot) % 360 + 360) % 360));
-    out.addPage(cp);
+    out.addPage(cp); page = cp; R = ((intr + p.rot) % 360 + 360) % 360;
     if (p.ann && p.ann.length) await applyAnn(out, cp, p.ann, intr);
+    if (p.crop) setCrop(cp, p.crop, intr);
   } else {
     const f = files.get(p.file);
     const img = f.png ? await out.embedPng(f.bytes) : await out.embedJpg(f.bytes);
-    let w = img.width, h = img.height, q = p.rot % 180;
-    const land = (q ? h > w : w > h);
+    let w = img.width, h = img.height, q2 = p.rot % 180;
+    const land = (q2 ? h > w : w > h);
     const [pw, ph] = land ? [A4[1], A4[0]] : A4;
-    const page = out.addPage([pw, ph]);
-    const k = Math.min((pw - 2 * M) / (q ? h : w), (ph - 2 * M) / (q ? w : h));
+    page = out.addPage([pw, ph]); R = 0;
+    const k = Math.min((pw - 2 * M) / (q2 ? h : w), (ph - 2 * M) / (q2 ? w : h));
     const dw = w * k, dh = h * k, cx = pw / 2, cy = ph / 2;
-    // place the (possibly rotated) image centred
     if (!p.rot) page.drawImage(img, { x: cx - dw / 2, y: cy - dh / 2, width: dw, height: dh });
     else {
       const r = p.rot * Math.PI / 180, cos = Math.cos(r), sin = Math.sin(r);
       page.drawImage(img, { x: cx - (dw / 2) * cos + (dh / 2) * sin, y: cy - (dw / 2) * sin - (dh / 2) * cos, width: dw, height: dh, rotate: degrees(p.rot) });
     }
     if (p.ann && p.ann.length) await applyAnn(out, page, p.ann, 0);
+    if (p.crop) setCrop(page, p.crop, 0);
   }
+  await overlays(out, page, R, idx, total);
 }
-async function build(list) { const out = await PDFDocument.create(); for (const p of list) await addTo(out, p); out.setProducer('PDF toolkit'); out.setCreator('PDF toolkit'); return out.save(); }
+async function build(list) { const out = await PDFDocument.create(); for (let i = 0; i < list.length; i++) await addTo(out, list[i], i, list.length); out.setProducer('PDF toolkit'); out.setCreator('PDF toolkit'); return out.save(); }
 
 function download(blob, name) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
@@ -301,11 +352,11 @@ $('zip').onclick = () => run(async () => {
   download(makeZip(items), 'pages.zip'); $('tot').textContent = `Saved pages.zip · ${items.length} files`;
 });
 
-/* ---------- page editor: text, stamp, signature, white-out ---------- */
+/* ---------- page editor: text, stamp, signature, white-out, crop ---------- */
 const pdfCache = new Map();
 async function pdfPage(p) {
   let d = pdfCache.get(p.file);
-  if (!d) { d = await pdfjs.getDocument({ data: files.get(p.file).bytes.slice() }).promise; pdfCache.set(p.file, d); }
+  if (!d) { const f = files.get(p.file); d = await pdfjs.getDocument({ data: (f.view || f.bytes).slice(), password: f.password }).promise; pdfCache.set(p.file, d); }
   return d.getPage(p.index + 1);
 }
 const loadImg = (url) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
@@ -332,30 +383,37 @@ function mergeItems(raw, v1) {
   return out.filter(o => o.str.trim());
 }
 
-async function geom(p, wpx, wantItems) {
+/* page geometry + a raster of the page. Give wpx (pixels wide) or dpi. */
+async function geom(p, wpx, wantItems, dpi) {
+  const px = (W) => Math.min(dpi ? W * dpi / 72 : wpx, 4200);
   if (p.kind === 'pdf') {
-    const pg = await pdfPage(p), v1 = pg.getViewport({ scale: 1 }), W = v1.width, H = v1.height, k = wpx / W;
-    const c = document.createElement('canvas'); c.width = Math.round(wpx); c.height = Math.round(H * k);
-    await pg.render({ canvasContext: c.getContext('2d'), viewport: pg.getViewport({ scale: k }) }).promise;
+    const pg = await pdfPage(p), v1 = pg.getViewport({ scale: 1 }), W = v1.width, H = v1.height, w = px(W), k = w / W;
+    const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(H * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    await pg.render({ canvasContext: x, viewport: pg.getViewport({ scale: k }) }).promise;
     const items = wantItems ? mergeItems((await pg.getTextContent()).items, v1) : [];
     return { W, H, base: c, items };
   }
   const f = files.get(p.file);
   if (!f.url) f.url = URL.createObjectURL(new Blob([f.bytes], { type: f.png ? 'image/png' : 'image/jpeg' }));
-  const im = await loadImg(f.url), q = p.rot % 180, w = im.naturalWidth, h = im.naturalHeight;
-  const land = q ? h > w : w > h, [pw, ph] = land ? [A4[1], A4[0]] : A4;
-  const kk = Math.min((pw - 2 * M) / (q ? h : w), (ph - 2 * M) / (q ? w : h)), dw = w * kk, dh = h * kk, k = wpx / pw;
-  const c = document.createElement('canvas'); c.width = Math.round(wpx); c.height = Math.round(ph * k);
+  const im = await loadImg(f.url), q = p.rot % 180, w0 = im.naturalWidth, h0 = im.naturalHeight;
+  const land = q ? h0 > w0 : w0 > h0, [pw, ph] = land ? [A4[1], A4[0]] : A4;
+  const kk = Math.min((pw - 2 * M) / (q ? h0 : w0), (ph - 2 * M) / (q ? w0 : h0)), dw = w0 * kk, dh = h0 * kk, w = px(pw), k = w / pw;
+  const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(ph * k);
   const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
   x.translate(pw / 2 * k, ph / 2 * k); x.rotate(p.rot * Math.PI / 180); x.drawImage(im, -dw / 2 * k, -dh / 2 * k, dw * k, dh * k);
   return { W: pw, H: ph, base: c, items: [] };
 }
+function cropCanvas(c, k, r) {
+  const o = document.createElement('canvas'); o.width = Math.max(1, Math.round(r.w * k)); o.height = Math.max(1, Math.round(r.h * k));
+  o.getContext('2d').drawImage(c, r.x * k, r.y * k, r.w * k, r.h * k, 0, 0, o.width, o.height); return o;
+}
 
 const mctx = document.createElement('canvas').getContext('2d');
-const fontCss = (size) => `400 ${size}px Inter, sans-serif`;
+const fontCss = (size, bold) => `${bold ? 700 : 400} ${size}px Inter, sans-serif`;
 function bboxOf(a) {
   if (a.t === 'text') {
-    mctx.font = fontCss(a.size); const lines = a.str.split('\n');
+    mctx.font = fontCss(a.size, a.bold); const lines = a.str.split('\n');
     const w = Math.max(8, ...lines.map(l => mctx.measureText(l).width));
     return { x: a.x, y: a.y - a.size * .95, w, h: lines.length * a.size * 1.25 };
   }
@@ -365,35 +423,40 @@ function drawAnn(ctx, a, k) {
   if (a.t === 'cover') { ctx.fillStyle = a.fill; ctx.fillRect(a.x * k, a.y * k, a.w * k, a.h * k); }
   else if (a.t === 'text') {
     if (a.cover) { ctx.fillStyle = a.cover.fill; ctx.fillRect(a.cover.x * k, a.cover.y * k, a.cover.w * k, a.cover.h * k); }
-    ctx.fillStyle = a.color; ctx.font = fontCss(a.size * k); ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = a.color; ctx.font = fontCss(a.size * k, a.bold); ctx.textBaseline = 'alphabetic';
     a.str.split('\n').forEach((l, i) => ctx.fillText(l, a.x * k, (a.y + i * a.size * 1.25) * k));
   } else if (a.t === 'img') ctx.drawImage(a.el, a.x * k, a.y * k, a.w * k, a.h * k);
 }
 
 async function bake(p) {
   if (!p.thumb0) p.thumb0 = p.thumb;
-  if (!p.ann || !p.ann.length) { p.thumb = p.thumb0; p.baked = false; return; }
-  const g = await geom(p, 220, false), k = g.base.width / g.W, c = g.base, x = c.getContext('2d');
-  p.ann.forEach(a => drawAnn(x, a, k));
+  if (!(p.ann && p.ann.length) && !p.crop) { p.thumb = p.thumb0; p.baked = false; return; }
+  const g = await geom(p, 220, false), k = g.base.width / g.W; let c = g.base;
+  (p.ann || []).forEach(a => drawAnn(c.getContext('2d'), a, k));
+  if (p.crop) c = cropCanvas(c, k, p.crop);
   p.thumb = c.toDataURL('image/jpeg', .75); p.baked = p.kind === 'img';
 }
 
 /* editor state */
-const ed = { p: null, g: null, anns: [], sel: -1, tool: 'move', drag: null, rub: null };
+const ed = { p: null, g: null, anns: [], hist: [], sel: -1, tool: 'move', drag: null, rub: null, crop: null };
 const HINTS = {
   move: 'Drag an item to move it. Tap one to change it.',
   text: 'Tap the page where the text should go.',
-  edit: 'Tap a line of the page text to change it. New text is set in Inter. The old text stays hidden under it in the file.',
+  edit: 'Tap a line of the page text to change it. New text is set in Inter. The old text stays hidden under it unless you save the page as an image.',
   stamp: 'Pick a stamp, then drag it into place.',
-  cover: 'Drag over an area to white it out. This hides it, it does not delete it from the file.'
+  cover: 'Drag over an area to white it out. It hides the spot, it does not delete the text, unless you save the page as an image.',
+  crop: 'Drag to choose the area to keep. The rest is cut off when you save.'
 };
 const INKS = ['#111111', '#d6282d', '#1a4fd0'];
+const snap = () => { ed.hist.push(ed.anns.map(clone)); if (ed.hist.length > 60) ed.hist.shift(); };
+const add = (a) => { snap(); ed.anns.push(a); ed.sel = ed.anns.length - 1; };
 
 async function openEditor(i) {
-  const p = pages[i]; ed.p = p; ed.anns = (p.ann || []).map(clone); ed.sel = -1; ed.tool = 'move'; ed.drag = null; ed.rub = null;
+  const p = pages[i]; ed.p = p; ed.anns = (p.ann || []).map(clone); ed.hist = []; ed.sel = -1; ed.tool = 'move'; ed.drag = null; ed.rub = null; ed.crop = p.crop ? { ...p.crop } : null;
   $('edTitle').textContent = `Edit page ${i + 1}`; $('ed').hidden = false; document.body.style.overflow = 'hidden';
+  $('edFlat').checked = !!p.flatten; $('edFlatL').hidden = !!p.locked;
   try {
-    await Promise.all([document.fonts.load('400 16px Inter', 'Aa'), document.fonts.load('400 16px Inter', 'Бб'), document.fonts.load('700 16px Inter', 'Aa Бб')]);
+    await Promise.all([['400', 'Aa'], ['400', 'Бб'], ['400', 'Αα'], ['400', 'Łł'], ['700', 'Aa Бб']].map(([w, t]) => document.fonts.load(`${w} 16px Inter`, t)));
     ed.g = await geom(p, 1400, true);
   } catch (e) { closeEditor(); err('Could not open this page for editing.'); return; }
   const c = $('edCv'); c.width = ed.g.base.width; c.height = ed.g.base.height;
@@ -411,10 +474,16 @@ function redraw() {
   const c = $('edCv'), x = c.getContext('2d'), k = c.width / ed.g.W;
   x.clearRect(0, 0, c.width, c.height); x.drawImage(ed.g.base, 0, 0);
   ed.anns.forEach(a => drawAnn(x, a, k));
-  x.save(); x.lineWidth = 1.5 * k / 1.4;
+  x.save(); const u = k / 1.4; x.lineWidth = 1.5 * u;
   if (ed.tool === 'edit') { x.strokeStyle = 'rgba(229,72,77,.75)'; ed.g.items.forEach(it => x.strokeRect((it.x - 1) * k, (it.y - it.h * .92) * k, (it.w + 2) * k, it.h * 1.17 * k)); }
-  if (ed.sel >= 0 && ed.anns[ed.sel]) { const b = bboxOf(ed.anns[ed.sel]); x.setLineDash([6 * k / 1.4, 4 * k / 1.4]); x.strokeStyle = '#1a73e8'; x.strokeRect((b.x - 2) * k, (b.y - 2) * k, (b.w + 4) * k, (b.h + 4) * k); }
-  if (ed.rub) { x.setLineDash([]); x.fillStyle = 'rgba(229,72,77,.15)'; x.strokeStyle = '#e5484d'; const r = ed.rub; x.fillRect(r.x * k, r.y * k, r.w * k, r.h * k); x.strokeRect(r.x * k, r.y * k, r.w * k, r.h * k); }
+  if (ed.sel >= 0 && ed.anns[ed.sel]) { const b = bboxOf(ed.anns[ed.sel]); x.setLineDash([6 * u, 4 * u]); x.strokeStyle = '#1a73e8'; x.strokeRect((b.x - 2) * k, (b.y - 2) * k, (b.w + 4) * k, (b.h + 4) * k); x.setLineDash([]); }
+  const cr = ed.rub && ed.tool === 'crop' ? ed.rub : ed.crop;
+  if (cr) {
+    x.fillStyle = 'rgba(20,23,27,.55)'; const X = cr.x * k, Y = cr.y * k, Wc = cr.w * k, Hc = cr.h * k;
+    x.fillRect(0, 0, c.width, Y); x.fillRect(0, Y + Hc, c.width, c.height - Y - Hc); x.fillRect(0, Y, X, Hc); x.fillRect(X + Wc, Y, c.width - X - Wc, Hc);
+    x.strokeStyle = '#e5484d'; x.lineWidth = 2 * u; x.strokeRect(X, Y, Wc, Hc);
+  }
+  if (ed.rub && ed.tool === 'cover') { x.fillStyle = 'rgba(229,72,77,.15)'; x.strokeStyle = '#e5484d'; const r = ed.rub; x.fillRect(r.x * k, r.y * k, r.w * k, r.h * k); x.strokeRect(r.x * k, r.y * k, r.w * k, r.h * k); }
   x.restore();
 }
 
@@ -428,6 +497,8 @@ function setTool(t) {
 function panel() {
   const P = $('edPanel'), a = ed.anns[ed.sel]; P.innerHTML = ''; requestAnimationFrame(() => { fit(); });
   const mk = (txt, fn, cls) => { const b = document.createElement('button'); b.textContent = txt; if (cls) b.className = cls; b.onclick = fn; P.appendChild(b); return b; };
+  $('edUndo').disabled = !ed.hist.length;
+  if (ed.tool === 'crop') { P.hidden = false; mk('Clear crop', () => { ed.crop = null; redraw(); }); return; }
   if (ed.tool === 'stamp') {
     P.hidden = false;
     [['APPROVED', '#1b8a3a'], ['PAID', '#1b8a3a'], ['DRAFT', '#c2410c'], ['COPY', '#1a4fd0'], ['CONFIDENTIAL', '#d6282d']].forEach(([t, col]) => mk(t, () => addStamp(t, col)));
@@ -439,20 +510,24 @@ function panel() {
   if (!a) { P.hidden = true; return; }
   P.hidden = false;
   if (a.t === 'text') {
-    const ta = document.createElement('textarea'); ta.id = 'pText'; ta.rows = 2; ta.value = a.str; ta.oninput = () => { a.str = ta.value; redraw(); }; P.appendChild(ta);
-    INKS.forEach(col => { const b = mk('', () => { a.color = col; redraw(); }, 'sw'); b.style.background = col; });
-    mk('A−', () => { a.size = Math.max(6, a.size - 1); redraw(); }); mk('A+', () => { a.size = Math.min(72, a.size + 1); redraw(); });
+    const ta = document.createElement('textarea'); ta.id = 'pText'; ta.rows = 2; ta.value = a.str;
+    ta.onfocus = () => { ta._s = false; }; ta.oninput = () => { if (!ta._s) { const keep = a.str; a.str = ta.value; ed.anns[ed.sel] = a; ed.hist.push(ed.anns.map((x, i) => i === ed.sel ? { ...clone(x), str: keep } : clone(x))); ta._s = true; $('edUndo').disabled = false; } a.str = ta.value; redraw(); }; P.appendChild(ta);
+    INKS.forEach(col => { const b = mk('', () => { snap(); a.color = col; redraw(); panel(); }, 'sw'); b.style.background = col; });
+    const ci = document.createElement('input'); ci.type = 'color'; ci.value = a.color; ci.className = 'sw'; ci.title = 'Colour'; ci.onchange = () => { snap(); a.color = ci.value; redraw(); $('edUndo').disabled = false; }; P.appendChild(ci);
+    const bb = mk('B', () => { snap(); a.bold = !a.bold; redraw(); panel(); }); bb.style.fontWeight = '800'; if (a.bold) bb.classList.add('on');
+    mk('A−', () => { snap(); a.size = Math.max(6, a.size - 1); redraw(); panel(); }); mk('A+', () => { snap(); a.size = Math.min(72, a.size + 1); redraw(); panel(); });
   } else if (a.t === 'img') {
-    mk('Smaller', () => { a.w *= .9; a.h *= .9; redraw(); }); mk('Bigger', () => { a.w *= 1.1; a.h *= 1.1; redraw(); });
+    mk('Smaller', () => { snap(); a.w *= .9; a.h *= .9; redraw(); panel(); }); mk('Bigger', () => { snap(); a.w *= 1.1; a.h *= 1.1; redraw(); panel(); });
   }
-  mk(a.cover ? 'Restore original' : 'Delete', () => { ed.anns.splice(ed.sel, 1); ed.sel = -1; panel(); redraw(); }, 'x');
+  mk(a.cover ? 'Restore original' : 'Delete', () => { snap(); ed.anns.splice(ed.sel, 1); ed.sel = -1; panel(); redraw(); }, 'x');
 }
+$('edUndo').onclick = () => { if (!ed.hist.length) return; ed.anns = ed.hist.pop(); ed.sel = -1; panel(); redraw(); };
 
 function pt(e) { const r = $('edCv').getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * ed.g.W, y: (e.clientY - r.top) / r.height * ed.g.H }; }
 function hit(q) { for (let i = ed.anns.length - 1; i >= 0; i--) { const b = bboxOf(ed.anns[i]); if (q.x >= b.x - 3 && q.x <= b.x + b.w + 3 && q.y >= b.y - 3 && q.y <= b.y + b.h + 3) return i; } return -1; }
 
 function sampleStyle(it) {
-  const k = ed.g.base.width / ed.g.W, ctx = ed.g.base.getContext('2d');
+  const k = ed.g.base.width / ed.g.W, ctx = ed.g.base.getContext('2d', { willReadFrequently: true });
   const x0 = Math.max(0, Math.floor((it.x - 2) * k)), y0 = Math.max(0, Math.floor((it.y - it.h * .95) * k));
   const w = Math.min(ed.g.base.width - x0, Math.ceil((it.w + 4) * k)), h = Math.min(ed.g.base.height - y0, Math.ceil(it.h * 1.25 * k));
   if (w <= 0 || h <= 0) return { fill: '#ffffff', ink: '#111111' };
@@ -464,42 +539,44 @@ function sampleStyle(it) {
 }
 
 const cv = $('edCv');
+const focusText = () => { const ta = $('pText'); if (ta) { ta.focus(); ta.select(); } };
 cv.addEventListener('pointerdown', (e) => {
   if (!ed.g) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
   const q = pt(e);
   if (ed.tool === 'text') {
     const i = hit(q);
-    if (i < 0) { ed.anns.push({ t: 'text', x: q.x, y: q.y, size: 14, color: INKS[0], str: 'Text' }); ed.sel = ed.anns.length - 1; setTool('move'); const ta = $('pText'); if (ta) { ta.focus(); ta.select(); } return; }
+    if (i < 0) { add({ t: 'text', x: q.x, y: q.y, size: 14, color: INKS[0], str: 'Text' }); setTool('move'); focusText(); return; }
     ed.sel = i; setTool('move'); return;
   }
   if (ed.tool === 'edit') {
     const it = ed.g.items.find(o => q.x >= o.x - 2 && q.x <= o.x + o.w + 2 && q.y >= o.y - o.h * .95 && q.y <= o.y + o.h * .3);
     if (!it) return;
     const st = sampleStyle(it);
-    ed.anns.push({ t: 'text', x: it.x, y: it.y, size: Math.round(it.h * 10) / 10, color: st.ink, str: it.str, orig: it.str, cover: { x: it.x - 1.5, y: it.y - it.h * .92, w: it.w + 3, h: it.h * 1.2, fill: st.fill } });
-    ed.sel = ed.anns.length - 1; setTool('move'); const ta = $('pText'); if (ta) { ta.focus(); ta.select(); } return;
+    add({ t: 'text', x: it.x, y: it.y, size: Math.round(it.h * 10) / 10, color: st.ink, str: it.str, orig: it.str, cover: { x: it.x - 1.5, y: it.y - it.h * .92, w: it.w + 3, h: it.h * 1.2, fill: st.fill } });
+    setTool('move'); focusText(); return;
   }
-  if (ed.tool === 'cover') { ed.rub = { x0: q.x, y0: q.y, x: q.x, y: q.y, w: 0, h: 0 }; return; }
+  if (ed.tool === 'cover' || ed.tool === 'crop') { ed.rub = { x0: q.x, y0: q.y, x: q.x, y: q.y, w: 0, h: 0 }; return; }
   const i = hit(q); ed.sel = i; panel();
-  if (i >= 0) { const a = ed.anns[i]; ed.drag = { dx: q.x - a.x, dy: q.y - a.y }; }
+  if (i >= 0) { snap(); const a = ed.anns[i]; ed.drag = { dx: q.x - a.x, dy: q.y - a.y }; $('edUndo').disabled = false; }
   redraw();
 });
 cv.addEventListener('pointermove', (e) => {
   if (!ed.g) return; const q = pt(e);
-  if (ed.rub) { const r = ed.rub; r.x = Math.min(r.x0, q.x); r.y = Math.min(r.y0, q.y); r.w = Math.abs(q.x - r.x0); r.h = Math.abs(q.y - r.y0); redraw(); return; }
+  if (ed.rub) { const r = ed.rub; r.x = Math.max(0, Math.min(r.x0, q.x)); r.y = Math.max(0, Math.min(r.y0, q.y)); r.w = Math.min(ed.g.W, Math.abs(q.x - r.x0) + Math.min(r.x0, q.x)) - r.x; r.h = Math.min(ed.g.H, Math.abs(q.y - r.y0) + Math.min(r.y0, q.y)) - r.y; redraw(); return; }
   if (ed.drag && ed.sel >= 0) { const a = ed.anns[ed.sel]; a.x = q.x - ed.drag.dx; a.y = q.y - ed.drag.dy; redraw(); }
 });
 const endDrag = () => {
   if (ed.rub) {
     const r = ed.rub; ed.rub = null;
     if (r.w > 3 && r.h > 3) {
-      const k = ed.g.base.width / ed.g.W, ctx = ed.g.base.getContext('2d'); let fill = '#ffffff', lum = -1;
+      if (ed.tool === 'crop') { ed.crop = { x: r.x, y: r.y, w: r.w, h: r.h }; redraw(); return; }
+      const k = ed.g.base.width / ed.g.W, ctx = ed.g.base.getContext('2d', { willReadFrequently: true }); let fill = '#ffffff', lum = -1;
       [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]].forEach(([cx, cy]) => {
         const px = Math.min(ed.g.base.width - 1, Math.max(0, Math.round(cx * k))), py = Math.min(ed.g.base.height - 1, Math.max(0, Math.round(cy * k)));
         const d = ctx.getImageData(px, py, 1, 1).data, l = d[0] + d[1] + d[2];
         if (l > lum) { lum = l; fill = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join(''); }
       });
-      ed.anns.push({ t: 'cover', x: r.x, y: r.y, w: r.w, h: r.h, fill }); ed.sel = ed.anns.length - 1; setTool('move'); return;
+      add({ t: 'cover', x: r.x, y: r.y, w: r.w, h: r.h, fill }); setTool('move'); return;
     }
     redraw();
   }
@@ -508,7 +585,7 @@ const endDrag = () => {
 cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
 
 async function makeImg(url, wpt) { const el = await loadImg(url); return { el, url, w: wpt, h: wpt * el.naturalHeight / el.naturalWidth }; }
-function addImg(o) { ed.anns.push({ t: 'img', x: ed.g.W / 2 - o.w / 2, y: ed.g.H * .4, w: o.w, h: o.h, url: o.url, el: o.el }); ed.sel = ed.anns.length - 1; setTool('move'); }
+function addImg(o) { add({ t: 'img', x: ed.g.W / 2 - o.w / 2, y: ed.g.H * .4, w: o.w, h: o.h, url: o.url, el: o.el }); setTool('move'); }
 
 async function addStamp(text, color) {
   const date = $('stD') && $('stD').checked ? new Date().toLocaleDateString('en-GB') : '';
@@ -527,7 +604,7 @@ async function addStamp(text, color) {
 
 /* signature pad */
 const sg = { ink: '#111111', draw: false };
-function sgCtx() { return $('sgCv').getContext('2d'); }
+function sgCtx() { return $('sgCv').getContext('2d', { willReadFrequently: true }); }
 function sgInit() { const c = $('sgCv'), x = sgCtx(); x.clearRect(0, 0, c.width, c.height); x.lineWidth = 6; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = sg.ink; }
 function sgPt(e) { const r = $('sgCv').getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 900, (e.clientY - r.top) / r.height * 300]; }
 $('sgCv').addEventListener('pointerdown', e => { e.preventDefault(); $('sgCv').setPointerCapture(e.pointerId); sg.draw = true; const [x, y] = sgPt(e), c = sgCtx(); c.strokeStyle = sg.ink; c.beginPath(); c.moveTo(x, y); c.lineTo(x + .1, y + .1); c.stroke(); });
@@ -557,14 +634,14 @@ document.querySelectorAll('#edTools button').forEach(b => b.onclick = () => {
 });
 $('edCancel').onclick = closeEditor;
 $('edDone').onclick = async () => {
-  const p = ed.p; p.ann = ed.anns.map(clone); closeEditor();
+  const p = ed.p; p.ann = ed.anns.map(clone); p.crop = ed.crop ? { ...ed.crop } : null; p.flatten = !p.locked && $('edFlat').checked; closeEditor();
   try { await bake(p); } catch (e) { }
   render();
 };
 
-/* apply annotations to an output page */
-function mapper(mb, r) {
-  const ox = mb.x, oy = mb.y, W = mb.width, H = mb.height;
+/* ---------- output: annotations, crop, numbers, watermark ---------- */
+function mapper(box, r) {
+  const ox = box.x, oy = box.y, W = box.width, H = box.height;
   if (r === 90) return { pt: (x, y) => [ox + y, oy + x], ang: 90 };
   if (r === 180) return { pt: (x, y) => [ox + W - x, oy + y], ang: 180 };
   if (r === 270) return { pt: (x, y) => [ox + W - y, oy + H - x], ang: 270 };
@@ -572,22 +649,34 @@ function mapper(mb, r) {
 }
 const hexRgb = (h) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
 const loadScript = (src) => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(s); });
-async function fontsFor(out) {
-  if (out._ptk) return out._ptk;
+const FONT_FILE = { lat: 'latin', ext: 'latin-ext', grk: 'greek', cyr: 'cyrillic' };
+async function fontFor(doc, sc, bold) {
+  doc._f = doc._f || {}; const key = sc + (bold ? 7 : 4); if (doc._f[key]) return doc._f[key];
   if (!window.fontkit) await loadScript('vendor/fontkit.umd.min.js');
-  out.registerFontkit(window.fontkit);
-  const get = async (n) => (await fetch('vendor/fonts/' + n)).arrayBuffer();
-  const [l, c] = await Promise.all([get('inter-latin-400-normal.woff'), get('inter-cyrillic-400-normal.woff')]);
-  out._ptk = { lat: await out.embedFont(l, { subset: true }), cyr: await out.embedFont(c, { subset: true }) };
-  return out._ptk;
+  if (!doc._fk) { doc.registerFontkit(window.fontkit); doc._fk = 1; }
+  const buf = await (await fetch(`vendor/fonts/inter-${FONT_FILE[sc]}-${bold ? 700 : 400}-normal.woff`)).arrayBuffer();
+  return (doc._f[key] = await doc.embedFont(buf, { subset: true }));
 }
+const scriptOf = (ch) => /[Ѐ-ӿ№]/.test(ch) ? 'cyr' : /[Ͱ-Ͽἀ-῿]/.test(ch) ? 'grk' : /[Ā-ʯḀ-ỿ]/.test(ch) ? 'ext' : 'lat';
 function scriptRuns(str) {
   const r = [];
-  for (const ch of str) { const cy = /[Ѐ-ӿ№]/.test(ch), last = r[r.length - 1]; if (last && last.cy === cy) last.s += ch; else r.push({ s: ch, cy }); }
+  for (const ch of str) { const sc = scriptOf(ch), last = r[r.length - 1]; if (last && last.sc === sc) last.s += ch; else r.push({ s: ch, sc }); }
   return r;
 }
+/* draw one line of text at visual point (vx,vy); theta = visual angle, counter-clockwise, in degrees */
+async function drawLine(doc, page, m, vx, vy, size, color, text, o = {}) {
+  const th = (o.theta || 0) * Math.PI / 180, dx = Math.cos(th), dy = -Math.sin(th), runs = [];
+  let tw = 0;
+  for (const r of scriptRuns(text)) { const font = await fontFor(doc, r.sc, o.bold); const w = font.widthOfTextAtSize(r.s, size); runs.push({ ...r, font, w }); tw += w; }
+  if (o.center) { vx -= tw / 2 * dx; vy -= tw / 2 * dy; }
+  for (const r of runs) {
+    const [X, Y] = m.pt(vx, vy);
+    page.drawText(r.s, { x: X, y: Y, size, font: r.font, color, opacity: o.opacity ?? 1, rotate: degrees(m.ang + (o.theta || 0)) });
+    vx += r.w * dx; vy += r.w * dy;
+  }
+}
 async function applyAnn(out, page, anns, intr) {
-  const m = mapper(page.getMediaBox(), intr);
+  const m = mapper(page.getCropBox(), intr);
   for (const a of anns) {
     const cov = a.t === 'cover' ? a : a.cover;
     if (cov) {
@@ -595,15 +684,8 @@ async function applyAnn(out, page, anns, intr) {
       page.drawRectangle({ x: Math.min(x1, x2), y: Math.min(y1, y2), width: Math.abs(x2 - x1), height: Math.abs(y2 - y1), color: hexRgb(cov.fill), borderWidth: 0 });
     }
     if (a.t === 'text' && a.str.trim()) {
-      const F = await fontsFor(out), col = hexRgb(a.color);
-      a.str.split('\n').forEach((line, li) => {
-        let vx = a.x; const vy = a.y + li * a.size * 1.25;
-        for (const run of scriptRuns(line)) {
-          const font = run.cy ? F.cyr : F.lat, [X, Y] = m.pt(vx, vy);
-          page.drawText(run.s, { x: X, y: Y, size: a.size, font, color: col, rotate: degrees(m.ang) });
-          vx += font.widthOfTextAtSize(run.s, a.size);
-        }
-      });
+      const col = hexRgb(a.color);
+      let li = 0; for (const line of a.str.split('\n')) { await drawLine(out, page, m, a.x, a.y + li * a.size * 1.25, a.size, col, line, { bold: a.bold }); li++; }
     }
     if (a.t === 'img') {
       const bin = atob(a.url.split(',')[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -612,6 +694,101 @@ async function applyAnn(out, page, anns, intr) {
     }
   }
 }
+function setCrop(page, r, intr) {
+  const m = mapper(page.getCropBox(), intr), [x1, y1] = m.pt(r.x, r.y), [x2, y2] = m.pt(r.x + r.w, r.y + r.h);
+  page.setCropBox(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+}
+async function overlays(out, page, R, idx, total) {
+  const wm = opts.wm.trim(); if (!wm && !opts.num) return;
+  const b = page.getCropBox(), m = mapper(b, R), Wv = R % 180 ? b.height : b.width, Hv = R % 180 ? b.width : b.height;
+  if (opts.num) await drawLine(out, page, m, Wv / 2, Hv - 20, 10, rgb(.35, .35, .35), `${idx + 1} / ${total}`, { center: true });
+  if (wm) { const size = Math.min(Wv, Hv) / Math.max(5, wm.length * .62) * 1.1; await drawLine(out, page, m, Wv / 2, Hv / 2 + size * .35, Math.min(110, size), rgb(.5, .5, .5), wm, { center: true, theta: 45, opacity: .22, bold: true }); }
+}
+/* turn a page into an image: used for "save as image", protected files and the smaller-size options */
+async function addRaster(out, p, dpi, q) {
+  const g = await geom(p, 0, false, dpi), k = g.base.width / g.W; let cv = g.base, w = g.W, h = g.H;
+  (p.ann || []).forEach(a => drawAnn(g.base.getContext('2d'), a, k));
+  if (p.crop) { cv = cropCanvas(g.base, k, p.crop); w = p.crop.w; h = p.crop.h; }
+  const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', q)), img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+  const page = out.addPage([w, h]); page.drawImage(img, { x: 0, y: 0, width: w, height: h });
+  const R = p.kind === 'pdf' ? ((p.rot % 360) + 360) % 360 : 0; if (R) page.setRotation(degrees(R));
+  return { page, R };
+}
+
+/* ---------- options (size, page numbers, watermark) ---------- */
+const opts = { q: 0, num: false, wm: '' };
+$('optB').onclick = () => { $('opQ').value = opts.q; $('opN').checked = opts.num; $('opW').value = opts.wm; $('op').hidden = false; };
+$('opOk').onclick = () => { opts.q = +$('opQ').value; opts.num = $('opN').checked; opts.wm = $('opW').value; $('op').hidden = true; $('optB').classList.toggle('on', !!(opts.q || opts.num || opts.wm.trim())); };
+
+/* ---------- forms ---------- */
+const FIELD_CLASSES = () => ({ text: PDFLib.PDFTextField, check: PDFLib.PDFCheckBox, drop: PDFLib.PDFDropdown, list: PDFLib.PDFOptionList, radio: PDFLib.PDFRadioGroup });
+function listFields(d) {
+  try {
+    const C = FIELD_CLASSES(), res = [];
+    d.getForm().getFields().forEach(f => {
+      const name = f.getName();
+      if (f instanceof C.text) res.push({ name, type: 'text', value: f.getText() || '' });
+      else if (f instanceof C.check) res.push({ name, type: 'check', value: f.isChecked() });
+      else if (f instanceof C.radio) res.push({ name, type: 'select', options: f.getOptions(), value: f.getSelected() || '' });
+      else if (f instanceof C.drop || f instanceof C.list) res.push({ name, type: 'select', options: f.getOptions(), value: (f.getSelected() || [])[0] || '' });
+    });
+    return res;
+  } catch (e) { return []; }
+}
+async function applyForm(doc, vals) {
+  const form = doc.getForm(), C = FIELD_CLASSES(), helv = await doc.embedFont(PDFLib.StandardFonts.Helvetica), texts = [];
+  for (const [name, v] of Object.entries(vals)) {
+    let f; try { f = form.getField(name); } catch (e) { continue; }
+    try {
+      if (f instanceof C.text) { f.setText(v); texts.push([f, v]); }
+      else if (f instanceof C.check) { v ? f.check() : f.uncheck(); }
+      else if (v && (f instanceof C.radio || f instanceof C.drop || f instanceof C.list)) f.select(v);
+    } catch (e) { }
+  }
+  const pick = async (v) => {          // one font per field: Helvetica for Latin, an Inter subset for Cyrillic or Greek
+    const n = { cyr: 0, grk: 0, lat: 0 }; for (const ch of v) if (/\p{L}/u.test(ch)) { const sc = scriptOf(ch); n[sc === 'ext' ? 'lat' : sc]++; }
+    return n.cyr > n.lat || n.grk > n.lat ? await fontFor(doc, n.cyr >= n.grk ? 'cyr' : 'grk', false) : helv;
+  };
+  for (const f of form.getFields()) {
+    try {
+      const t = texts.find(x => x[0] === f);
+      if (t) f.defaultUpdateAppearances(await pick(t[1]));
+      else if (f instanceof C.text) f.defaultUpdateAppearances(await pick(f.getText() || ''));
+      else f.defaultUpdateAppearances(helv);
+    } catch (e) { }
+  }
+  form.flatten({ updateFieldAppearances: false });
+}
+function openForms() {
+  const box = $('fmBody'); box.innerHTML = '';
+  for (const [id, f] of files) {
+    if (!f.fields || !f.fields.length) continue;
+    const h = document.createElement('h4'); h.textContent = f.name; box.appendChild(h);
+    f.fields.forEach((fl, i) => {
+      const row = document.createElement('label'); row.className = 'frow'; const nm = document.createElement('span'); nm.textContent = fl.name; row.appendChild(nm);
+      const cur = (f.formVals && fl.name in f.formVals) ? f.formVals[fl.name] : fl.value; let inp;
+      if (fl.type === 'check') { inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = !!cur; }
+      else if (fl.type === 'select') { inp = document.createElement('select'); ['', ...fl.options].forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o || '—'; inp.appendChild(op); }); inp.value = cur || ''; }
+      else { inp = document.createElement('input'); inp.type = 'text'; inp.value = cur || ''; }
+      inp.dataset.f = id; inp.dataset.n = fl.name; inp.dataset.t = fl.type; row.appendChild(inp); box.appendChild(row);
+    });
+  }
+  $('fm').hidden = false;
+}
+$('formB').onclick = openForms; $('fmNo').onclick = () => { $('fm').hidden = true; };
+$('fmOk').onclick = () => run(async () => {
+  const byFile = new Map();
+  $('fmBody').querySelectorAll('[data-f]').forEach(el => { const id = +el.dataset.f, o = byFile.get(id) || {}; o[el.dataset.n] = el.dataset.t === 'check' ? el.checked : el.value; byFile.set(id, o); });
+  $('fm').hidden = true;
+  for (const [id, vals] of byFile) {
+    const f = files.get(id); f.formVals = vals; srcCache.delete(id); pdfCache.delete(id); f.view = null;
+    f.view = new Uint8Array(await (await srcDoc(id)).save());
+    for (const p of pages.filter(q => q.file === id && q.kind === 'pdf')) {
+      const g = await geom(p, 220, false); p.thumb0 = g.base.toDataURL('image/jpeg', .7); p.thumb = p.thumb0;
+      if ((p.ann && p.ann.length) || p.crop) await bake(p);
+    }
+  }
+});
 
 render();
 window.__toolkit = { addFiles, build, ed, get pages() { return pages; } };   // handy for tests

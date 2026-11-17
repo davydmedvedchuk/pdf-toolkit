@@ -127,7 +127,7 @@ footer a{text-decoration:underline}
 <header class="hero"><div class="c">
   <nav>
     <a class="brand" href="#top"><img src="../logo.svg" alt="">PDF toolkit</a>
-    <div class="links"><a href="#how">How it works</a><a href="#pages">Pages</a><a href="#edit">Edit</a><a href="#faq">FAQ</a></div>
+    <div class="links"><a href="#how">How it works</a><a href="#pages">Pages</a><a href="#edit">Edit</a><a href="#more">More</a><a href="#faq">FAQ</a></div>
     <a class="btn go sm" href="../">Open the app</a>
   </nav>
   <div class="hero-grid" id="top">
@@ -178,13 +178,26 @@ footer a{text-decoration:underline}
   <p class="sub">Tap ✎ on any page. Fill in a form, sign a quote, mark an invoice as paid.</p>
   <div class="ed2">
     <div class="list">
-      <div class="fb"><h3>Add text</h3><p style="margin:0">Type anywhere on the page. Latin and Cyrillic both work.</p></div>
+      <div class="fb"><h3>Add text</h3><p style="margin:0">Type anywhere on the page. Bold, any colour. Latin, Cyrillic and Greek all work.</p></div>
       <div class="fb"><h3>Edit text</h3><p style="margin:0">Tap a line of the page and change it. New text is set in Inter, so it can look a little different from the original.</p></div>
       <div class="fb"><h3>Stamp</h3><p style="margin:0">APPROVED, PAID, DRAFT, or your own words, with today's date if you like.</p></div>
       <div class="fb"><h3>Signature</h3><p style="margin:0">Draw it with a finger or a mouse. The page remembers the last one in your browser.</p></div>
-      <div class="fb"><h3>White out</h3><p style="margin:0">Cover an area. It hides the spot, but the text underneath stays in the file.</p></div>
+      <div class="fb"><h3>White out and crop</h3><p style="margin:0">Cover an area, or cut the page down to what you want to keep. Undo is there when you slip.</p></div>
+      <div class="fb"><h3>Save as an image</h3><p style="margin:0">Tick it and the page is flattened. The old text underneath is really gone, but the page is no longer selectable text.</p></div>
     </div>
     <img class="shot" src="img/editor.jpg" alt="The page editor with a signature, a date and an APPROVED stamp on a quotation" loading="lazy">
+  </div>
+</div></section>
+
+<section id="more" style="padding-top:20px"><div class="c">
+  <div class="kicker">Also</div>
+  <h2>For the whole file</h2>
+  <p class="sub">Settings that apply when you save.</p>
+  <div class="fm">
+    <div class="fb"><h3>Smaller file</h3><div class="chips"><span>Original</span><span>150 dpi</span><span>100 dpi</span></div><p>Smaller and Smallest turn pages into images, so the file shrinks and quality drops a little.</p></div>
+    <div class="fb"><h3>Numbers and watermark</h3><div class="chips"><span>1 / 5</span><span>DRAFT</span></div><p>Number every page, or put a light diagonal word across them.</p></div>
+    <div class="fb"><h3>Fill in forms</h3><div class="chips"><span>Name</span><span>City</span><span>☑</span></div><p>Fillable fields are listed in one place. Fill them, and the form is flattened into the page.</p></div>
+    <div class="fb"><h3>Protected PDFs</h3><div class="chips"><span>Password</span></div><p>Enter the password to open the file. Its pages are saved as images.</p></div>
   </div>
 </div></section>
 
@@ -206,8 +219,9 @@ footer a{text-decoration:underline}
     <div class="qa"><b>Are my files uploaded?</b><p>No. The page does all the work on your device. There is no server that receives them.</p></div>
     <div class="qa"><b>What does it cost?</b><p>Nothing. No account, no ads. The code is open under the MIT licence.</p></div>
     <div class="qa"><b>Does it change the quality of my pages?</b><p>PDF pages are copied as they are. Photos are embedded as images, so very large photos make a large file. Shrink them first if size matters.</p></div>
-    <div class="qa"><b>Does editing remove the old text?</b><p>No. Changed text and white-out boxes are drawn on top. The original stays in the file and can still be copied, so do not use this to hide private data.</p></div>
-    <div class="qa"><b>Can it compress a PDF?</b><p>Not yet. Photos are added as they are, so shrink big ones first, for example with Photo shrinker.</p></div>
+    <div class="qa"><b>Does editing remove the old text?</b><p>Not by default. Changed text and white-out boxes are drawn on top, and the original can still be copied. Tick "Save this page as an image" in the editor to flatten the page and really remove it.</p></div>
+    <div class="qa"><b>Can it compress a PDF?</b><p>Yes. Options, then Smaller or Smallest. Every page becomes an image, so text can no longer be selected.</p></div>
+    <div class="qa"><b>Can it scan or read photos of documents?</b><p>No. There is no text recognition yet. A scan stays a picture. HEIC photos are not accepted either.</p></div>
   </div>
 </div></section>
 

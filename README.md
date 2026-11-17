@@ -2,7 +2,7 @@
 
 Website: https://davydmedvedchuk.github.io/pdf-toolkit/about/
 
-Merge, split, reorder, rotate, delete and edit PDF pages. Add text, a stamp or a signature. Turn photos into a PDF. It runs in your browser, so your documents never leave your device.
+Merge, split, reorder, rotate, delete and edit PDF pages. Add text, a stamp or a signature, fill forms, compress. Turn photos into a PDF. It runs in your browser, so your documents never leave your device.
 
 **[Open the app](https://davydmedvedchuk.github.io/pdf-toolkit/)**
 
@@ -13,13 +13,15 @@ Drop PDFs and photos onto the page. Every page shows up as a thumbnail. Drag to 
 - **Merge.** Add several PDFs, and photos too. They become one list of pages.
 - **Reorder.** Drag a page, or use the arrows on each card.
 - **Rotate and delete** single pages.
-- **Edit a page (✎).** Add text, change a line of the existing text, put on a stamp (APPROVED, PAID, DRAFT or your own words, with a date if you like), draw a signature, or white out an area. Latin and Cyrillic text both work.
-- **Save selected.** Tick some pages and save only those.
-- **Split to ZIP.** One PDF per page, packed in one ZIP.
-- **Photos to PDF.** JPG and PNG go on A4 pages, centred, landscape or portrait by shape.
-- Password-protected PDFs are not supported. Remove the password first.
+- **Edit a page (✎).** Add text (bold, any colour, Latin, Cyrillic, Greek), change a line of the existing text, put on a stamp (APPROVED, PAID, DRAFT or your own words, with a date if you like), draw a signature, white out an area, or crop the page. Undo is there.
+- **Save a page as an image.** Tick the box in the editor and the page is flattened, so the old text underneath is really gone. The page can no longer be selected as text.
+- **Fill in forms.** If a PDF has fillable fields, "Fill form" lists them. Values are written into the pages and the form is flattened.
+- **Protected PDFs.** Enter the password and the pages are opened. Because the file cannot be copied page by page, they are saved as images.
+- **Options.** File size (Smaller 150 dpi, Smallest 100 dpi: every page becomes an image), page numbers, and a watermark.
 
-**About editing.** Changed text and white-out boxes are drawn on top of the page. The original text stays in the file underneath, so it can still be copied. Do not use this to hide private data. New text is set in Inter, so it will not match the original font exactly.
+**About editing.** Without "Save this page as an image", changed text and white-out boxes are drawn on top of the page. The original text stays in the file underneath and can still be copied. New text is set in Inter, so it will not match the original font exactly. Added text covers Latin, Cyrillic and Greek. In one form field, mixed scripts are not supported (a Cyrillic field shows only Cyrillic letters).
+
+**What it does not do.** OCR for scans, HEIC photos, rotated text editing, real digital (certificate) signatures, redaction tools beyond flattening the page.
 
 ## Command line (Python)
 
